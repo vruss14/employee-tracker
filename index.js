@@ -45,6 +45,7 @@ function askForAction () {
         } else if (response.action === "Update an employee's role") {
             askUpdateEmployeeQuestions();
         } else if (response.action === "Quit"){
+            console.log("Bye for now!");
             return;
         }
     })
@@ -72,6 +73,8 @@ function askAddDepartmentQuestions() {
             console.log("Your response cannot be blank.");
             askAddDepartmentQuestions();
             return;
+        } else {
+            departments.push(response.department);
         }
 
         inquirer.prompt([
@@ -84,10 +87,14 @@ function askAddDepartmentQuestions() {
             },
         ])
 
+        // The response is pushed to the array every time, but if it is incorrect, the pop() method will remove it
+
         .then (function(response) {
             if(response.departmentverify === "Yes") {
                 console.log ("Great! We will continue.");
+                askForAction();
             } else {
+                departments.pop();
                 askAddDepartmentQuestions();
             }
         })
@@ -112,9 +119,10 @@ function askAddRoleQuestions() {
         },
 
         {
-            type: 'input',
+            type: 'list',
             message: 'What department does this role belong to?',
             name: 'roledept',
+            choices: departments
         },
     ])
 
@@ -138,7 +146,11 @@ function askAddRoleQuestions() {
             console.log("The department cannot be blank.");
             askAddRoleQuestions();
             return;
+        } else {
+            roles.push(response.role);
         }
+
+        // The role is pushed to the roles array, and if it is incorrect, the pop() method removes it
         
         inquirer.prompt([
 
@@ -153,7 +165,10 @@ function askAddRoleQuestions() {
         .then (function(response) {
             if(response.roleverify === "Yes") {
                 console.log ("Great! We will continue.");
+                console.log(roles);
+                askForAction();
             } else {
+                roles.pop();
                 askAddRoleQuestions();
             }
         })
@@ -190,6 +205,8 @@ function askAddEmployeeQuestions() {
         },
     ])
 
+    // An employee is added if there are no errors; if the user changes their mind, the pop() method removes it from the array
+
     .then (function(response) {
 
         if (response.employeefirstname === "") {
@@ -204,6 +221,9 @@ function askAddEmployeeQuestions() {
             console.log("The employee's role cannot be blank.");
             askAddEmployeeQuestions();
             return;
+        } else {
+            employees.push(response.employeefirstname + " " + response.employeelastname);
+            console.log(employees);
         }
 
         inquirer.prompt([
@@ -219,7 +239,9 @@ function askAddEmployeeQuestions() {
         .then (function(response) {
             if(response.employeeverify === "Yes") {
                 console.log ("Great! We will continue.");
+                askForAction();
             } else {
+                employees.pop();
                 askAddEmployeeQuestions();
             }
         })
@@ -241,6 +263,7 @@ function askViewDepartmentQuestions() {
 
     .then(function (response) {
         console.log(`Thanks for your feedback!`)
+        askForAction();
     })
 }
 
@@ -258,6 +281,7 @@ function askViewRoleQuestions() {
 
     .then(function (response) {
         console.log(`Thanks for your feedback!`)
+        askForAction();
     })
 }
 
@@ -275,6 +299,7 @@ function askViewEmployeeQuestions() {
 
     .then(function (response) {
         console.log(`Thanks for your feedback!`)
+        askForAction();
     })
 }
 
