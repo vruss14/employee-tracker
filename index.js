@@ -1,19 +1,29 @@
-const fs = require('fs');
 const inquirer = require('inquirer');
+const mysql = require('mysql');
+const dotenv = require('dotenv');
+require('dotenv').config()
 
-// Answer lists are organized into arrays for easy access
+// Creates the connection once to the mySQL database
+// The connection ends only when the user selects "Quit"
+
+const connection = mysql.createConnection({
+    host: 'localhost',
+    port: 3306,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+});
+
+connection.connect((err, res) => {
+    if (err) throw err;
+});
+
+// Answer lists are organized into arrays for easy access later on in the script
 
 const actionOptions = ["Add a department", "Add a role", "Add an employee", "View a department", 
 "View a role", "View an employee", "Update an employee's role", "Quit"];
 
 const yesOrNo = ["Yes", "No"];
-
-// These arrays should be modified based on user responses and currently have placeholder data for testing purposes
-
-const departments = ["Engineering", "Sales", "Marketing"];
-const roles = ["Engineer", "Intern", "Manager"];
-const employees = ["John Doe", "Jane Doe"];
-
 
 // This is the main menu
 
@@ -46,39 +56,42 @@ function askForAction () {
             askUpdateEmployeeQuestions();
         } else if (response.action === "Quit"){
             console.log("Bye for now!");
+            connection.end();
             return;
         }
     })
 }
 
-// This is the function that will be called when the application is initially run (i.e. the main menu)
+// This function (i.e. the main menu) is called when the application is initially run
 askForAction();
 
 // These questions and verifications are used if the user wants to add a department
 
 function askAddDepartmentQuestions() {
     inquirer.prompt([
-
         {
             type: 'input',
             message: 'What is the name of the department?',
             name: 'department',
         },
-
     ])
 
     .then (function(response) {
 
+        // Storing this particular part of the response in a variable allows it to be used in the following promise
+        let userDept = response.department;
+        
         if (response.department === "") {
             console.log("Your response cannot be blank.");
             askAddDepartmentQuestions();
             return;
         } else {
-            departments.push(response.department);
+            connection.query(`INSERT INTO department (deptname) VALUES ("${response.department}");`, (err, res) => {
+                if (err) throw err;
+            });
         }
 
         inquirer.prompt([
-
             {
                 type: 'list',
                 message: `You want to create a department named ${response.department}. Is this correct?`,
@@ -87,15 +100,27 @@ function askAddDepartmentQuestions() {
             },
         ])
 
-        // The response is pushed to the array every time, but if it is incorrect, the pop() method will remove it
+        // The user's response has already been inserted into the database at this point
+        // This verification checks if the department should be deleted or kept in the database
 
         .then (function(response) {
             if(response.departmentverify === "Yes") {
-                console.log ("Great! We will continue.");
-                askForAction();
+                connection.query("SELECT * FROM department", (err, res) => {
+                    if (err) throw err;
+                    console.log("The department has been added.");
+                    console.table(res);
+                    askForAction();
+                });
             } else {
-                departments.pop();
-                askAddDepartmentQuestions();
+                connection.query(`DELETE FROM department WHERE deptname = "${userDept}"`, (err, res) => {
+                    if (err) throw err;
+                    console.log("The department has been deleted.");
+                    connection.query("SELECT * FROM department", (err, res) => {
+                        if (err) throw err;
+                        console.table(res);
+                        askAddDepartmentQuestions();
+                    });
+                });
             }
         })
     })
@@ -105,7 +130,6 @@ function askAddDepartmentQuestions() {
 
 function askAddRoleQuestions() {
     inquirer.prompt([
-
         {
             type: 'input',
             message: 'What is the title of the role?',
@@ -127,7 +151,6 @@ function askAddRoleQuestions() {
     ])
 
     .then (function(response) {
-
         // Ensures that all three questions have been answered properly before proceeding.
 
         if (response.role === "") {
@@ -153,7 +176,6 @@ function askAddRoleQuestions() {
         // The role is pushed to the roles array, and if it is incorrect, the pop() method removes it
         
         inquirer.prompt([
-
             {
                 type: 'list',
                 message: `You want to create a role named ${response.role}, which pays $${response.rolesalary} annually and belongs to the ${response.roledept} department. Is this correct?`,
@@ -179,7 +201,6 @@ function askAddRoleQuestions() {
 
 function askAddEmployeeQuestions() {
     inquirer.prompt([
-
         {
             type: 'input',
             message: "What is the employee's first name?",
@@ -208,7 +229,6 @@ function askAddEmployeeQuestions() {
     // An employee is added if there are no errors; if the user changes their mind, the pop() method removes it from the array
 
     .then (function(response) {
-
         if (response.employeefirstname === "") {
             console.log("The employee's first name cannot be blank.");
             askAddEmployeeQuestions();
@@ -227,7 +247,6 @@ function askAddEmployeeQuestions() {
         }
 
         inquirer.prompt([
-
             {
                 type: 'list',
                 message: `You want to add an employee named ${response.employeefirstname} ${response.employeelastname}, who works as a/an ${response.employeerole}. Is this correct?`,
@@ -245,13 +264,11 @@ function askAddEmployeeQuestions() {
                 askAddEmployeeQuestions();
             }
         })
-
     })
 }
 
 function askViewDepartmentQuestions() {
     inquirer.prompt([
-
         {
             type: 'list',
             message: 'Which department would you like to view?',
@@ -269,14 +286,12 @@ function askViewDepartmentQuestions() {
 
 function askViewRoleQuestions() {
     inquirer.prompt([
-
         {
             type: 'list',
             message: 'Which role would you like to view?',
             name: 'viewroles',
             choices: roles
         },
-
     ])
 
     .then(function (response) {
@@ -287,14 +302,12 @@ function askViewRoleQuestions() {
 
 function askViewEmployeeQuestions() {
     inquirer.prompt([
-
         {
             type: 'list',
             message: 'Which employee would you like to view?',
             name: 'viewemployees',
             choices: employees
         },
-
     ])
 
     .then(function (response) {
@@ -305,14 +318,12 @@ function askViewEmployeeQuestions() {
 
 function askUpdateEmployeeQuestions() {
     inquirer.prompt([
-
         {
             type: 'list',
             message: 'Which employee would you like to update?',
             name: 'updateemployees',
             choices: employees
         },
-
     ])
 
     .then(function (response) {
