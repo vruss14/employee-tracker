@@ -21,8 +21,8 @@ connection.connect((err, res) => {
 
 // Answer lists are organized into arrays for easy access later on in the script
 
-const actionOptions = ["Add a department", "Add a role", "Add an employee", "View a department", 
-"View a role", "View an employee", "Update an employee's role", "Quit"];
+const actionOptions = ["Add a department", "Add a role", "Add an employee", "View all departments", 
+"View all roles", "View all employees", "Update an employee's role", "Quit"];
 
 const yesOrNo = ["Yes", "No"];
 
@@ -47,11 +47,11 @@ function askForAction () {
             askAddRoleQuestions();
         } else if (response.action === "Add an employee") {
             askAddEmployeeQuestions();
-        } else if (response.action === "View a department") {
+        } else if (response.action === "View all departments") {
             askViewDepartmentQuestions();
-        } else if (response.action === "View a role") {
+        } else if (response.action === "View all roles") {
             askViewRoleQuestions();
-        } else if (response.action === "View an employee") {
+        } else if (response.action === "View all employees") {
             askViewEmployeeQuestions();
         } else if (response.action === "Update an employee's role") {
             askUpdateEmployeeQuestions();
@@ -294,52 +294,30 @@ function askAddEmployeeQuestions() {
 }
 
 function askViewDepartmentQuestions() {
-    inquirer.prompt([
-        {
-            type: 'list',
-            message: 'Which department would you like to view?',
-            name: 'viewdepts',
-            choices: departments
-        },
-
-    ])
-
-    .then(function (response) {
-        console.log(`Thanks for your feedback!`)
+    connection.query("SELECT * FROM department", (err, res) => {
+        if (err) throw err;
+        console.log('\n','You are now viewing all departments.');
+        console.table('\n', res);
         askForAction();
-    })
+    });
 }
 
 function askViewRoleQuestions() {
-    inquirer.prompt([
-        {
-            type: 'list',
-            message: 'Which role would you like to view?',
-            name: 'viewroles',
-            choices: roles
-        },
-    ])
-
-    .then(function (response) {
-        console.log(`Thanks for your feedback!`)
+    connection.query("SELECT title, salary FROM role", (err, res) => {
+        if (err) throw err;
+        console.log('\n','You are now viewing all roles.');
+        console.table('\n', res);
         askForAction();
-    })
+    });
 }
 
 function askViewEmployeeQuestions() {
-    inquirer.prompt([
-        {
-            type: 'list',
-            message: 'Which employee would you like to view?',
-            name: 'viewemployees',
-            choices: employees
-        },
-    ])
-
-    .then(function (response) {
-        console.log(`Thanks for your feedback!`)
+    connection.query("SELECT id, first_name, last_name FROM employee", (err, res) => {
+        if (err) throw err;
+        console.log('\n','You are now viewing all employees.');
+        console.table('\n', res);
         askForAction();
-    })
+    });
 }
 
 function askUpdateEmployeeQuestions() {
