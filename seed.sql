@@ -15,7 +15,8 @@ CREATE TABLE role (
   title VARCHAR(30) NOT NULL,
   salary DECIMAL(10,2) NOT NULL,
   department_id INT,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  FOREIGN KEY (department_id) REFERENCES department(id)
 );
 
 CREATE TABLE employee (
@@ -24,17 +25,19 @@ CREATE TABLE employee (
   last_name VARCHAR(30) NOT NULL,
   role_id INT,
   manager_id INT,
-  PRIMARY KEY (id)
+  PRIMARY KEY (id),
+  FOREIGN KEY (role_id) REFERENCES role(id),
+  FOREIGN KEY (manager_id) REFERENCES employee(id)
 );
 
 INSERT INTO department (deptname)
 VALUES ("Engineering"), ("Sales"), ("Marketing"), ("Human Resources"), ("R&D");
 
-INSERT INTO role (title, salary, department_id)
-VALUES ("Engineer", 75000, 100), ("Sales Representative", 50000, 200), ("Marketing Manager", 45000, 300), ("Assistant", 48000, 400), ("Data Scientist", 85000, 500);
+INSERT INTO role (title, salary)
+VALUES ("Engineer", 75000), ("Sales Representative", 50000), ("Marketing Manager", 45000), ("Assistant", 48000), ("Data Scientist", 85000);
 
-INSERT INTO employee (first_name, last_name, role_id, manager_id)
-VALUES ("John", "Doe", 5, 2), ("Jane", "Jones", 10, 4), ("Robert", "Pettingill", 15, 6), ("Sarah", "Hyssop", 20, 8), ("Kate", "Worthen", 25, 10);
+INSERT INTO employee (first_name, last_name)
+VALUES ("John", "Doe"), ("Jane", "Jones"), ("Robert", "Pettingill"), ("Sarah", "Hyssop"), ("Kate", "Worthen");
 
 SELECT * FROM department;
 

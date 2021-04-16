@@ -1,6 +1,7 @@
 const inquirer = require('inquirer');
 const mysql = require('mysql');
 const dotenv = require('dotenv');
+const consoleTable = require('console.table');
 require('dotenv').config()
 
 // Creates the connection once to the mySQL database
@@ -107,17 +108,17 @@ function askAddDepartmentQuestions() {
             if(response.departmentverify === "Yes") {
                 connection.query("SELECT * FROM department", (err, res) => {
                     if (err) throw err;
-                    console.log("The department has been added.");
-                    console.table(res);
+                    console.log('\n','The department has been added.');
+                    console.table('\n', res);
                     askForAction();
                 });
             } else {
                 connection.query(`DELETE FROM department WHERE deptname = "${userDept}"`, (err, res) => {
                     if (err) throw err;
-                    console.log("The department has been deleted.");
                     connection.query("SELECT * FROM department", (err, res) => {
                         if (err) throw err;
-                        console.table(res);
+                        console.log('\n', "The department has been deleted.");
+                        console.table('\n', res);
                         askAddDepartmentQuestions();
                     });
                 });
@@ -143,15 +144,15 @@ function askAddRoleQuestions() {
         },
 
         {
-            type: 'list',
+            type: 'input',
             message: 'What department does this role belong to?',
             name: 'roledept',
-            choices: departments
         },
     ])
 
     .then (function(response) {
         // Ensures that all three questions have been answered properly before proceeding.
+        let userRoleTitle = response.role;
 
         if (response.role === "") {
             console.log("The title of the role cannot be blank.");
@@ -170,10 +171,10 @@ function askAddRoleQuestions() {
             askAddRoleQuestions();
             return;
         } else {
-            roles.push(response.role);
+            connection.query(`INSERT INTO role (title, salary) VALUES ("${response.role}", ${response.rolesalary});`, (err, res) => {
+                if (err) throw err;
+            })
         }
-
-        // The role is pushed to the roles array, and if it is incorrect, the pop() method removes it
         
         inquirer.prompt([
             {
@@ -186,12 +187,22 @@ function askAddRoleQuestions() {
 
         .then (function(response) {
             if(response.roleverify === "Yes") {
-                console.log ("Great! We will continue.");
-                console.log(roles);
-                askForAction();
+                connection.query("SELECT id, title, salary FROM role", (err, res) => {
+                    if (err) throw err;
+                    console.log('\n', "The role has been added.");
+                    console.table('\n', res);
+                    askForAction();
+                });
             } else {
-                roles.pop();
-                askAddRoleQuestions();
+                connection.query(`DELETE FROM role WHERE title = "${userRoleTitle}"`, (err, res) => {
+                    if (err) throw err;
+                    connection.query("SELECT id, title, salary FROM role", (err, res) => {
+                        if (err) throw err;
+                        console.table(res);
+                        console.log("The role has been deleted.");
+                        askAddDepartmentQuestions();
+                    });
+                });
             }
         })
     })
@@ -226,9 +237,12 @@ function askAddEmployeeQuestions() {
         },
     ])
 
-    // An employee is added if there are no errors; if the user changes their mind, the pop() method removes it from the array
+    // An employee is added if there are no errors; if the user changes their mind, the data is removed from the database
 
     .then (function(response) {
+        let firstName = response.employeefirstname;
+        let lastName = response.employeelastname;
+
         if (response.employeefirstname === "") {
             console.log("The employee's first name cannot be blank.");
             askAddEmployeeQuestions();
@@ -242,8 +256,9 @@ function askAddEmployeeQuestions() {
             askAddEmployeeQuestions();
             return;
         } else {
-            employees.push(response.employeefirstname + " " + response.employeelastname);
-            console.log(employees);
+            connection.query(`INSERT INTO employee (first_name, last_name) VALUES ("${response.employeefirstname}", "${response.employeelastname}");`, (err, res) => {
+                if (err) throw err;
+            })
         }
 
         inquirer.prompt([
@@ -257,11 +272,22 @@ function askAddEmployeeQuestions() {
 
         .then (function(response) {
             if(response.employeeverify === "Yes") {
-                console.log ("Great! We will continue.");
-                askForAction();
+                connection.query("SELECT first_name, last_name FROM employee", (err, res) => {
+                    if (err) throw err;
+                    console.log('\n', "The employee has been added.");
+                    console.table('\n', res);
+                    askForAction();
+                });
             } else {
-                employees.pop();
-                askAddEmployeeQuestions();
+                connection.query(`DELETE FROM role WHERE first_name = "${firstName}" AND last_name = "${lastName}"`, (err, res) => {
+                    if (err) throw err;
+                    connection.query("SELECT id, title, salary FROM role", (err, res) => {
+                        if (err) throw err;
+                        console.log('\n', "The role has been deleted.");
+                        console.table('\n', res);
+                        askAddDepartmentQuestions();
+                    });
+                });
             }
         })
     })
