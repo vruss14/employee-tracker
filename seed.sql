@@ -1,7 +1,5 @@
 DROP DATABASE IF EXISTS employeesDB;
-
 CREATE DATABASE employeesDB;
-
 USE employeesDB;
 
 CREATE TABLE department (
@@ -33,11 +31,11 @@ CREATE TABLE employee (
 INSERT INTO department (deptname)
 VALUES ("Engineering"), ("Sales"), ("Marketing"), ("Human Resources"), ("R&D");
 
-INSERT INTO role (title, salary)
-VALUES ("Engineer", 75000), ("Sales Representative", 50000), ("Marketing Manager", 45000), ("Assistant", 48000), ("Data Scientist", 85000);
+INSERT INTO role (title, salary, department_id)
+VALUES ("Engineer", 75000, 1), ("Sales Representative", 50000, 2), ("Marketing Manager", 45000, 3), ("Assistant", 48000, 4), ("Data Scientist", 85000, 5);
 
-INSERT INTO employee (first_name, last_name)
-VALUES ("John", "Doe"), ("Jane", "Jones"), ("Robert", "Pettingill"), ("Sarah", "Hyssop"), ("Kate", "Worthen");
+INSERT INTO employee (first_name, last_name, role_id, manager_id)
+VALUES ("John", "Doe", 1, null), ("Jane", "Jones", 2, 1), ("Robert", "Pettingill", 3, 1), ("Sarah", "Hyssop", 4, 1), ("Kate", "Worthen", 5, 1);
 
 SELECT * FROM department;
 

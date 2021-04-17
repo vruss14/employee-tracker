@@ -294,7 +294,7 @@ function askAddEmployeeQuestions() {
 }
 
 function askViewDepartmentQuestions() {
-    connection.query("SELECT * FROM department", (err, res) => {
+    connection.query("SELECT employee.first_name AS 'First Name', employee.last_name AS 'Last Name', department.deptname AS 'Department' FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id ORDER BY department.deptname;", (err, res) => {
         if (err) throw err;
         console.log('\n','You are now viewing all departments.');
         console.table('\n', res);
@@ -303,7 +303,7 @@ function askViewDepartmentQuestions() {
 }
 
 function askViewRoleQuestions() {
-    connection.query("SELECT title, salary FROM role", (err, res) => {
+    connection.query("SELECT employee.first_name AS 'First Name', employee.last_name AS 'Last Name', role.title AS Title FROM employee JOIN role ON employee.role_id = role.id ORDER BY employee.last_name;", (err, res) => {
         if (err) throw err;
         console.log('\n','You are now viewing all roles.');
         console.table('\n', res);
@@ -312,7 +312,7 @@ function askViewRoleQuestions() {
 }
 
 function askViewEmployeeQuestions() {
-    connection.query("SELECT id, first_name, last_name FROM employee", (err, res) => {
+    connection.query("SELECT employee.id AS 'ID', employee.first_name AS 'First Name', employee.last_name AS 'Last Name', role.title AS 'Title', role.salary AS 'Salary (USD)', department.deptname AS 'Department', CONCAT(boss.first_name, ' ', boss.last_name) AS 'Manager' FROM employee INNER JOIN role on role.id = employee.role_id INNER JOIN department ON department.id = role.department_id LEFT JOIN employee boss ON employee.manager_id = boss.id ORDER BY employee.id;", (err, res) => {
         if (err) throw err;
         console.log('\n','You are now viewing all employees.');
         console.table('\n', res);
@@ -323,10 +323,27 @@ function askViewEmployeeQuestions() {
 function askUpdateEmployeeQuestions() {
     inquirer.prompt([
         {
-            type: 'list',
-            message: 'Which employee would you like to update?',
-            name: 'updateemployees',
-            choices: employees
+            type: 'input',
+            message: "What is the employee's first name?",
+            name: 'firstname',
+        },
+
+        {
+            type: 'input',
+            message: "What is the employee's last name?",
+            name: 'lastname',
+        },
+
+        {
+            type: 'input',
+            message: "What is the employee's new role?",
+            name: 'newrole',
+        },
+
+        {
+            type: 'input',
+            message: "Who is the employee's new manager? If the employee has no manager, leave this blank and hit enter.",
+            name: 'newmanager',
         },
     ])
 
