@@ -23,8 +23,10 @@ connection.connect((err, res) => {
 
 const actionOptions = ["Add a department", "Add a role", "Add an employee", "View all departments", 
 "View all roles", "View all employees", "Update an employee's role", "Quit"];
-
 const yesOrNo = ["Yes", "No"];
+const roles = [];
+const depts = [];
+const possibleManagers = ["No Manager"];
 
 // This is the main menu
 
@@ -127,6 +129,39 @@ function askAddDepartmentQuestions() {
     })
 }
 
+function chooseRole() {
+    connection.query("SELECT * FROM role", function (err, res) {
+        if (err) throw err;
+        for (let i = 0; i < res.length; i++) {
+            roles.push(res[i].title);
+        }
+    })
+
+    return roles;
+}
+
+function chooseDept() {
+    connection.query("SELECT * FROM department", function (err, res) {
+        if (err) throw err;
+        for (let i = 0; i < res.length; i++) {
+            depts.push(res[i].deptname);
+        }
+    })
+
+    return depts;
+}
+
+function chooseManager() {
+    connection.query("SELECT DISTINCT first_name, last_name FROM employee WHERE manager_id IS NULL", function (err, res) {
+        if (err) throw err;
+        for (let i = 0; i < res.length; i++) {
+            possibleManagers.push(`${res[i].first_name} ${res[i].last_name}`);
+        }
+    })
+
+    return possibleManagers;
+}
+
 // These questions clarify the role the user wants to add, and ensures that no errors have been made
 
 function askAddRoleQuestions() {
@@ -144,9 +179,10 @@ function askAddRoleQuestions() {
         },
 
         {
-            type: 'input',
+            type: 'list',
             message: 'What department does this role belong to?',
             name: 'roledept',
+            choices: chooseDept()
         },
     ])
 
@@ -200,7 +236,7 @@ function askAddRoleQuestions() {
                         if (err) throw err;
                         console.table(res);
                         console.log("The role has been deleted.");
-                        askAddDepartmentQuestions();
+                        askAddRoleQuestions();
                     });
                 });
             }
@@ -225,15 +261,17 @@ function askAddEmployeeQuestions() {
         },
 
         {
-            type: 'input',
+            type: 'list',
             message: "What is the employee's role?",
             name: 'employeerole',
+            choices: chooseRole()
         },
 
         {
-            type: 'input',
-            message: "Who is the employee's manager? If the employee has no manager, leave this blank and hit enter.",
+            type: 'list',
+            message: "Who is the employee's manager? If the employee has no manager, select the blank option.",
             name: 'employeemanager',
+            choices: chooseManager()
         },
     ])
 
@@ -242,6 +280,12 @@ function askAddEmployeeQuestions() {
     .then (function(response) {
         let firstName = response.employeefirstname;
         let lastName = response.employeelastname;
+        let roleId = chooseRole().indexOf(response.employeerole) + 1;
+        let managerId = chooseManager().indexOf(response.employeemanager);
+
+        if (response.employeemanager === "No Manager") {
+            managerId = null;
+        }
 
         if (response.employeefirstname === "") {
             console.log("The employee's first name cannot be blank.");
@@ -256,7 +300,7 @@ function askAddEmployeeQuestions() {
             askAddEmployeeQuestions();
             return;
         } else {
-            connection.query(`INSERT INTO employee (first_name, last_name) VALUES ("${response.employeefirstname}", "${response.employeelastname}");`, (err, res) => {
+            connection.query(`INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ("${response.employeefirstname}", "${response.employeelastname}", ${roleId}, ${managerId});`, (err, res) => {
                 if (err) throw err;
             })
         }
@@ -294,7 +338,7 @@ function askAddEmployeeQuestions() {
 }
 
 function askViewDepartmentQuestions() {
-    connection.query("SELECT employee.first_name AS 'First Name', employee.last_name AS 'Last Name', department.deptname AS 'Department' FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id ORDER BY department.deptname;", (err, res) => {
+    connection.query("SELECT department.deptname AS 'Department', employee.first_name AS 'First Name', employee.last_name AS 'Last Name' FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id ORDER BY department.deptname;", (err, res) => {
         if (err) throw err;
         console.log('\n','You are now viewing all departments.');
         console.table('\n', res);
