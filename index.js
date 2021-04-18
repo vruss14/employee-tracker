@@ -163,18 +163,6 @@ function chooseManager() {
     return possibleManagers;
 }
 
-function chooseEmployee() {
-    connection.query("SELECT first_name, last_name FROM employee", function (err, res) {
-        if (err) throw err;
-        for (let i = 0; i < res.length; i++) {
-            allEmployees.push(`${res[i].first_name} ${res[i].last_name}`);
-        }
-        // console.log(allEmployees); DISPLAYS THE UPDATED ARRAY AS EXPECTED
-    })
-
-    return allEmployees; // RETURNS A BLANK ARRAY
-}
-
 // These questions clarify the role the user wants to add, and ensures that no errors have been made
 
 function askAddRoleQuestions() {
@@ -379,37 +367,49 @@ function askViewEmployeeQuestions() {
 }
 
 function askUpdateEmployeeQuestions() {
-    // console.log(chooseEmployee()); ARRAY IS BLANK
-    inquirer.prompt([
-        {
-            type: 'list',
-            message: "Which employee would you like to update?",
-            name: 'employeeOfInterest',
-            choices: chooseEmployee()
-        },
+    let allEmployees = [];
 
-        {
-            type: 'list',
-            message: "What is the employee's new role?",
-            name: 'newrole',
-            choices: chooseRole()
-        },
+    connection.query("SELECT employee.id AS 'ID', employee.first_name, employee.last_name, role.title AS 'Title' FROM employee INNER JOIN role on role.id = employee.role_id ORDER BY employee.id;", (err, res) => {
+        if (err) throw err;
 
-    ])
+        inquirer.prompt([
+            {
+                type: 'list',
+                message: "Which employee would you like to update?",
+                name: 'employeeOfInterest',
+                choices: function() {
+                 
+                    for (let i = 0; i < res.length; i++) {
+                        allEmployees.push(`${res[i].first_name} ${res[i].last_name}`);
+                    }
 
-    .then (function(response) {
-        let employeeId = chooseEmployee().indexOf(response.employeeOfInterest) + 1;
-        let roleId = chooseRole().indexOf(response.newrole) + 1;
+                    return allEmployees;
+                }
+            },
+    
+            {
+                type: 'list',
+                message: "What is the employee's new role?",
+                name: 'newrole',
+                choices: chooseRole()
+            },
+    
+        ])
 
-        connection.query(`UPDATE employee SET role_id = ${roleId} WHERE employee.id = ${employeeId};`, (err, res) => {
-            if (err) throw err;
-
-            connection.query("SELECT employee.first_name AS 'First Name', employee.last_name AS 'Last Name', role.title AS Title FROM employee JOIN role ON employee.role_id = role.id ORDER BY employee.last_name;", (err, res) => {
+        .then (function(response) {
+            let employeeId = allEmployees.indexOf(response.employeeOfInterest) + 1;
+            let roleId = chooseRole().indexOf(response.newrole) + 1;
+    
+            connection.query(`UPDATE employee SET role_id = ${roleId} WHERE employee.id = ${employeeId};`, (err, res) => {
                 if (err) throw err;
-                console.log('\n', "The employee's role has been updated.");
-                console.table('\n', res);
-                askForAction();
-            });
-        })   
-    })
+    
+                connection.query("SELECT employee.first_name AS 'First Name', employee.last_name AS 'Last Name', role.title AS Title FROM employee JOIN role ON employee.role_id = role.id ORDER BY employee.last_name;", (err, res) => {
+                    if (err) throw err;
+                    console.log('\n', "The employee's role has been updated.");
+                    console.table('\n', res);
+                    askForAction();
+                });
+            })   
+        })
+    });
 }
