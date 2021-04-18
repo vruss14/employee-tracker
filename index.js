@@ -129,17 +129,6 @@ function askAddDepartmentQuestions() {
     })
 }
 
-function chooseRole() {
-    connection.query("SELECT * FROM role", function (err, res) {
-        if (err) throw err;
-        for (let i = 0; i < res.length; i++) {
-            roles.push(res[i].title);
-        }
-    })
-
-    return roles;
-}
-
 function chooseDept() {
     connection.query("SELECT * FROM department", function (err, res) {
         if (err) throw err;
@@ -149,6 +138,17 @@ function chooseDept() {
     })
 
     return depts;
+}
+
+function chooseRole() {
+    connection.query("SELECT * FROM role", function (err, res) {
+        if (err) throw err;
+        for (let i = 0; i < res.length; i++) {
+            roles.push(res[i].title);
+        }
+    })
+
+    return roles;
 }
 
 function chooseManager() {
@@ -189,6 +189,7 @@ function askAddRoleQuestions() {
     .then (function(response) {
         // Ensures that all three questions have been answered properly before proceeding.
         let userRoleTitle = response.role;
+        let deptId = chooseDept().indexOf(response.roledept) + 1;
 
         if (response.role === "") {
             console.log("The title of the role cannot be blank.");
@@ -207,7 +208,7 @@ function askAddRoleQuestions() {
             askAddRoleQuestions();
             return;
         } else {
-            connection.query(`INSERT INTO role (title, salary) VALUES ("${response.role}", ${response.rolesalary});`, (err, res) => {
+            connection.query(`INSERT INTO role (title, salary, department_id) VALUES ("${response.role}", ${response.rolesalary}, ${deptId});`, (err, res) => {
                 if (err) throw err;
             })
         }
