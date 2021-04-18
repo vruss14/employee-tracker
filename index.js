@@ -27,9 +27,8 @@ const yesOrNo = ["Yes", "No"];
 const roles = [];
 const depts = [];
 const possibleManagers = ["No Manager"];
-const allEmployees = [];
 
-// This is the main menu
+// This is the main menu that is returned to each time until the user quits the application
 
 function askForAction () {
     inquirer.prompt([
@@ -129,6 +128,8 @@ function askAddDepartmentQuestions() {
         })
     })
 }
+
+// The chooseDept(), chooseRole(), and chooseManager() functions are used to create a list of choices for inquirer
 
 function chooseDept() {
     connection.query("SELECT * FROM department", function (err, res) {
@@ -283,8 +284,11 @@ function askAddEmployeeQuestions() {
         let firstName = response.employeefirstname;
         let lastName = response.employeelastname;
         let roleId = chooseRole().indexOf(response.employeerole) + 1;
+        
+        // Since there is already one value in the manager array ("No Manager"), the indexes match up exactly with the IDs
         let managerId = chooseManager().indexOf(response.employeemanager);
 
+        // Some employees do not have a manager, and this is accounted for in the data with this if statement
         if (response.employeemanager === "No Manager") {
             managerId = null;
         }
@@ -339,6 +343,8 @@ function askAddEmployeeQuestions() {
     })
 }
 
+// Advanced queries select exactly the data that should be displayed, in the correct order and with proper titles for each column
+
 function askViewDepartmentQuestions() {
     connection.query("SELECT department.deptname AS 'Department', employee.first_name AS 'First Name', employee.last_name AS 'Last Name' FROM employee JOIN role ON employee.role_id = role.id JOIN department ON role.department_id = department.id ORDER BY department.deptname;", (err, res) => {
         if (err) throw err;
@@ -365,6 +371,8 @@ function askViewEmployeeQuestions() {
         askForAction();
     });
 }
+
+// This function updates a particular employee's role
 
 function askUpdateEmployeeQuestions() {
     let allEmployees = [];
