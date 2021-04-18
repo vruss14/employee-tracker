@@ -27,6 +27,7 @@ const yesOrNo = ["Yes", "No"];
 const roles = [];
 const depts = [];
 const possibleManagers = ["No Manager"];
+const allEmployees = [];
 
 // This is the main menu
 
@@ -160,6 +161,18 @@ function chooseManager() {
     })
 
     return possibleManagers;
+}
+
+function chooseEmployee() {
+    connection.query("SELECT first_name, last_name FROM employee", function (err, res) {
+        if (err) throw err;
+        for (let i = 0; i < res.length; i++) {
+            allEmployees.push(`${res[i].first_name} ${res[i].last_name}`);
+        }
+        // console.log(allEmployees); DISPLAYS THE UPDATED ARRAY AS EXPECTED
+    })
+
+    return allEmployees; // RETURNS A BLANK ARRAY
 }
 
 // These questions clarify the role the user wants to add, and ensures that no errors have been made
@@ -366,33 +379,37 @@ function askViewEmployeeQuestions() {
 }
 
 function askUpdateEmployeeQuestions() {
+    // console.log(chooseEmployee()); ARRAY IS BLANK
     inquirer.prompt([
         {
-            type: 'input',
-            message: "What is the employee's first name?",
-            name: 'firstname',
+            type: 'list',
+            message: "Which employee would you like to update?",
+            name: 'employeeOfInterest',
+            choices: chooseEmployee()
         },
 
         {
-            type: 'input',
-            message: "What is the employee's last name?",
-            name: 'lastname',
-        },
-
-        {
-            type: 'input',
+            type: 'list',
             message: "What is the employee's new role?",
             name: 'newrole',
+            choices: chooseRole()
         },
 
-        {
-            type: 'input',
-            message: "Who is the employee's new manager? If the employee has no manager, leave this blank and hit enter.",
-            name: 'newmanager',
-        },
     ])
 
-    .then(function (response) {
-        console.log(`Thanks for your feedback!`)
+    .then (function(response) {
+        let employeeId = chooseEmployee().indexOf(response.employeeOfInterest) + 1;
+        let roleId = chooseRole().indexOf(response.newrole) + 1;
+
+        connection.query(`UPDATE employee SET role_id = ${roleId} WHERE employee.id = ${employeeId};`, (err, res) => {
+            if (err) throw err;
+
+            connection.query("SELECT employee.first_name AS 'First Name', employee.last_name AS 'Last Name', role.title AS Title FROM employee JOIN role ON employee.role_id = role.id ORDER BY employee.last_name;", (err, res) => {
+                if (err) throw err;
+                console.log('\n', "The employee's role has been updated.");
+                console.table('\n', res);
+                askForAction();
+            });
+        })   
     })
 }
