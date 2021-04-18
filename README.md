@@ -33,7 +33,7 @@ To start the application from the command line after installations have been com
             
 ## Usage
 
-This application can be used to create and modify an employee database. A video detailing how the application is intended to be used can be found here: https://drive.google.com/file/d/1-e_hyj97t8jFzLdeL6nU9WEBPUMkNmQp/view
+This application can be used to create and modify an employee database. A video detailing how the application is intended to be used can be found here: https://drive.google.com/file/d/15sOegjOnCbxaZ46GfkgRYp1b4IKiQhv8/view
 
 ## License
 
