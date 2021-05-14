@@ -1,5 +1,7 @@
 # Employee Tracker
 
+Simple CMS solution to view and modify basic employee data for an organization.
+
 ## Description
 
 This application utilizes Node.js and MySQL to allow a user to create and modify information about employees within a particular organization. By answering questions in the command line, the user can add new departments, roles, and employees, as well as view departments, roles, and employees. If desired, the user can also update a particular employee's role. To create this application, I used Node.js, MySQL, inquirer, and additional npm packages as needed.
@@ -13,6 +15,14 @@ I see many opportunities for future development for this project, including:
 - Adding more queries to view a subset of departments/roles/employees
 
 I am excited to continue to implement what I have learned in future projects.
+
+## Technologies Used
+
+- Node.js
+- Express.js
+- MySQL
+- Sequelize
+- Inquirer
 
 ## Table of Contents
 
