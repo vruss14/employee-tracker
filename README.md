@@ -35,6 +35,18 @@ To start the application from the command line after installations have been com
 
 This application can be used to create and modify an employee database. A video detailing how the application is intended to be used can be found here: https://drive.google.com/file/d/15sOegjOnCbxaZ46GfkgRYp1b4IKiQhv8/view
 
+The application's main menu, as seen in the command line:
+
+![menu](assets/employee-main-menu.png)
+
+Viewing all departments:
+
+![menu](assets/view-all-departments.png)
+
+Viewing all employees:
+
+![menu](assets/view-all-employees.png)
+
 ## License
 
 This project has not yet been licensed, and thus, standard copyright laws apply.
